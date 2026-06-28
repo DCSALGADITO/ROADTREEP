@@ -194,8 +194,8 @@ main,
     height: 100vh;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    text-align: left;
+    justify-content: center;
+    text-align: center;
     position: relative;
     padding: 0 5%;
     overflow: hidden;
@@ -206,7 +206,10 @@ main,
     animation: fadeIn 1s ease-out;
     position: relative;
     z-index: 10;
-    max-width: 800px;
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
     pointer-events: none;
     transition: opacity 0.5s ease, transform 0.5s ease;
 }
@@ -218,15 +221,26 @@ main,
 .hero-title {
     font-family: 'Jost', sans-serif;
     font-size: clamp(3.5rem, 8vw, 7rem);
-    /* Plus gros */
     font-weight: 800;
     line-height: 0.95;
-    /* Titre plus tassé et percutant */
-    margin-bottom: 1.5rem;
-    color: var(--primary-color);
+    margin-bottom: 0;
+    color: #ffffff; /* Texte en blanc */
     text-transform: uppercase;
     letter-spacing: -1px;
-    /* Moderne */
+    text-align: center;
+}
+
+/* Placeholder Gris pour l'album */
+.photo-placeholder {
+    position: absolute;
+    width: 240px;
+    height: 160px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .hero-section.fullscreen-active .hero-content {
@@ -288,25 +302,34 @@ main,
 /* SHAPE DIVIDER (Vague transition Hero -> Pokedex) */
 .custom-shape-divider-top {
     position: absolute;
-    top: -1px;
-    /* Évite la fine ligne de démarcation */
+    bottom: -1px; /* Ancré en bas du Hero */
+    top: auto;
     left: 0;
     width: 100%;
     overflow: hidden;
     line-height: 0;
-    z-index: 0;
+    z-index: 20; /* Au-dessus du canvas (z-index 1) et des photos */
+    pointer-events: none; /* Ne bloque pas les interactions */
+    transition: opacity 0.4s ease; /* Transition douce à l'entrée/sortie du mode exploration */
 }
 
 .custom-shape-divider-top svg {
     position: relative;
     display: block;
     width: calc(100% + 1.3px);
-    height: 70px;
+    height: 100px;
+    transform: rotateX(180deg); /* Retourne la vague pour qu'elle pointe vers le bas */
 }
 
 .custom-shape-divider-top .shape-fill {
-    fill: #0d1117;
-    /* Couleur de la section Hero qui "coule" sur le vert */
+    fill: var(--bg-color, #f5f0e8); /* Couleur de la section suivante (fond sable) */
+}
+
+/* La vague disparaît en mode exploration plein écran */
+.hero-section.fullscreen-active .custom-shape-divider-top {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
 }
 
 
@@ -985,16 +1008,22 @@ main,
     background-color: transparent;
     overflow: hidden;
     pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* En mode actif, le canvas intercepte tous les événements souris */
 .hero-section.fullscreen-active .album-wrapper {
     pointer-events: all;
     cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .hero-section.fullscreen-active .album-wrapper:active {
     cursor: grabbing;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .infinite-canvas {

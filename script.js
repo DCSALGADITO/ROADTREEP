@@ -72,7 +72,6 @@ try {
     const canvas       = document.getElementById('infinite-canvas');
     const uploadInput  = document.getElementById('photo-upload');
     const exitBtn      = document.getElementById('exit-album-btn');
-    const exploreBtn   = document.getElementById('explore-btn');
 
     if (!wrapper || !canvas) {
         console.error('[ROADTREEP] Éléments du canvas introuvables !');
@@ -110,17 +109,12 @@ try {
         // setTransform();
     };
 
-    if (exploreBtn) exploreBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        activateAlbum();
-    });
     if (exitBtn) exitBtn.addEventListener('click', deactivateAlbum);
 
     // Clic sur le fond de la section (hors boutons) active l'exploration
     if (section) {
         section.addEventListener('click', (e) => {
             if (active) return;
-            if (e.target.closest('#explore-btn')) return;
             if (e.target.closest('#exit-album-btn')) return;
             if (e.target.closest('.add-photo-btn-glass')) return;
             if (e.target.closest('.hero-content')) return;
@@ -213,14 +207,43 @@ try {
         }
     });
 
-    // ── Trackpad / scroll ──────────────────────────────────
-    wrapper.addEventListener('wheel', (e) => {
+    // ── Trackpad / scroll — capturé sur toute la section pour ne jamais rater un geste ──
+    // On écoute sur la section ET sur le wrapper pour couvrir tous les éléments (photos, texte, etc.)
+    const onWheel = (e) => {
         if (!active) return;
         e.preventDefault();
+        e.stopPropagation();
         tx -= e.deltaX;
         ty -= e.deltaY;
         setTransform();
-    }, { passive: false });
+    };
+    section.addEventListener('wheel', onWheel, { passive: false });
+    wrapper.addEventListener('wheel', onWheel, { passive: false });
+
+    // ── Navigation au clavier (Flèches directionnelles) ────
+    window.addEventListener('keydown', (e) => {
+        if (!active) return;
+        const step = 50; // Vitesse de déplacement au clavier
+        switch(e.key) {
+            case 'ArrowUp':
+                ty += step;
+                e.preventDefault();
+                break;
+            case 'ArrowDown':
+                ty -= step;
+                e.preventDefault();
+                break;
+            case 'ArrowLeft':
+                tx += step;
+                e.preventDefault();
+                break;
+            case 'ArrowRight':
+                tx -= step;
+                e.preventDefault();
+                break;
+        }
+        setTransform();
+    });
 
     // ── Upload photos ──────────────────────────────────────
     if (uploadInput) {
@@ -289,6 +312,11 @@ try {
         photoCount++;
         const pos = getRingPos(photoCount);
 
+        const placeholder = canvas.querySelector(`.photo-placeholder[data-index="${photoCount}"]`);
+        if (placeholder) {
+            placeholder.remove();
+        }
+
         const div = document.createElement('div');
         div.className    = 'photo-item';
         div.style.left   = pos.x + 'px';
@@ -334,7 +362,21 @@ try {
         del.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
         del.addEventListener('mousedown', async (ev) => {
             ev.stopPropagation();
+            // Récupérer la position de la photo avant de la supprimer
+            const deletedLeft = div.style.left;
+            const deletedTop  = div.style.top;
+            const deletedIndex = div.dataset.photoIndex;
             div.remove();
+            // Recréer un placeholder gris à la place de la photo supprimée
+            if (deletedIndex) {
+                const ph = document.createElement('div');
+                ph.className = 'photo-placeholder';
+                ph.style.left = deletedLeft;
+                ph.style.top = deletedTop;
+                ph.style.transform = 'translate(-50%,-50%)';
+                ph.dataset.index = deletedIndex;
+                canvas.appendChild(ph);
+            }
             if (db && dbId)        { try { await db.from('photos').delete().eq('id', dbId); } catch(e){} }
             if (db && storagePath) { try { await db.storage.from(BUCKET).remove([storagePath]); } catch(e){} }
         });
@@ -342,42 +384,37 @@ try {
         actions.appendChild(dl);
         actions.appendChild(del);
         div.appendChild(actions);
+        // Mémoriser l'index pour pouvoir recréer le placeholder si suppression
+        div.dataset.photoIndex = photoCount;
         canvas.appendChild(div);
 
-        makeDraggable(div);
         console.log('[ROADTREEP] Photo ajoutée au canvas ✅ pos:', pos);
     }
 
-    // ── Rendre une photo déplaçable ───────────────────────
-    function makeDraggable(el) {
-        let on = false, sx = 0, sy = 0, il = 0, it = 0;
-
-        el.addEventListener('mousedown', (e) => {
-            if (!active) return;
-            if (e.target.closest('.action-btn')) return;
-            e.stopPropagation();
-            on = true;
-            el.style.zIndex = zTop++;
-            el.style.cursor = 'grabbing';
-            sx = e.clientX; sy = e.clientY;
-            il = parseFloat(el.style.left)  || 0;
-            it = parseFloat(el.style.top)   || 0;
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!on) return;
-            el.style.left = (il + e.clientX - sx) + 'px';
-            el.style.top  = (it + e.clientY - sy) + 'px';
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (on) { on = false; el.style.cursor = 'pointer'; }
-        });
+    // ── Générer les placeholders gris ─────────────────────
+    function initPlaceholders() {
+        const MAX_PLACEHOLDERS = 100; // Grille dense de blocs gris
+        for (let i = photoCount + 1; i <= MAX_PLACEHOLDERS; i++) {
+            // Ne pas créer de doublon si un placeholder existe déjà à cet index
+            if (canvas.querySelector(`.photo-placeholder[data-index="${i}"]`)) continue;
+            const pos = getRingPos(i);
+            const div = document.createElement('div');
+            div.className = 'photo-placeholder';
+            div.style.left = pos.x + 'px';
+            div.style.top = pos.y + 'px';
+            div.style.transform = 'translate(-50%,-50%)';
+            div.dataset.index = i;
+            canvas.appendChild(div);
+        }
     }
 
     // ── Charger les photos depuis Supabase au démarrage ───
     async function loadPhotos() {
-        if (!db) { console.log('[ROADTREEP] Mode local – pas de chargement Supabase'); return; }
+        if (!db) { 
+            console.log('[ROADTREEP] Mode local – pas de chargement Supabase'); 
+            initPlaceholders();
+            return; 
+        }
         try {
             const { data, error } = await db
                 .from('photos')
@@ -389,6 +426,7 @@ try {
         } catch (err) {
             console.error('[ROADTREEP] Impossible de charger les photos:', err);
         }
+        initPlaceholders();
     }
 
     loadPhotos();
