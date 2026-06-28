@@ -1049,6 +1049,7 @@ main,
     left: 50%;
     width: 0;
     height: 0;
+    will-change: transform; /* Indique au navigateur d'optimiser l'accélération matérielle */
     /* transform is handled by js */
 }
 

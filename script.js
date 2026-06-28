@@ -123,8 +123,15 @@ try {
     }
 
     // Helpers
+    let isTicking = false;
     const setTransform = () => {
-        canvas.style.transform = `translate(${tx}px, ${ty}px)`;
+        if (!isTicking) {
+            requestAnimationFrame(() => {
+                canvas.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+                isTicking = false;
+            });
+            isTicking = true;
+        }
     };
 
     // Spirale carrée : n=1 au centre, n=2 au-dessus, n=3 à droite du 2, puis carré
