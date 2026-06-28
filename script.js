@@ -450,3 +450,16 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => console.error('Erreur chargement GeoJSON:', err));
 });
+
+// ─── 5. STATS PARCOURS (TOGGLE DÉTAILS) ───────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('toggle-parcours-details');
+    const detailsContent = document.getElementById('parcours-details-content');
+
+    if (toggleBtn && detailsContent) {
+        toggleBtn.addEventListener('click', () => {
+            toggleBtn.classList.toggle('open');
+            detailsContent.classList.toggle('open');
+        });
+    }
+});

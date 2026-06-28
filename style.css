@@ -372,7 +372,7 @@ main,
 /* Date titre — haute spécificité pour ne pas être écrasée par .section h2 */
 .section h2.date-title {
     font-family: 'Jost', sans-serif;
-    font-size: 10vw; /* Grand mais pas excessif */
+    font-size: 10vw; /* Taille d'origine pour ordinateur */
     font-weight: 800;
     color: var(--hero-bg); /* Corail */
     letter-spacing: -4px;
@@ -424,6 +424,113 @@ main,
 
 .mobile-text {
     display: none;
+}
+
+/* ── STATS PARCOURS ────────────────────────────────────────────── */
+.parcours-stats-wrapper {
+    /* Mêmes dimensions que .gear-svg pour s'aligner exactement en dessous */
+    width: 95vw;
+    max-width: 1400px;
+    margin-left: 10rem;
+    
+    /* Padding pour s'aligner exactement entre x=100 (le 2) et x=900 (le R)
+       Largeur totale = 1050. Marge gauche = 100/1050 = ~9.52%
+       Marge droite (après 900) = 150/1050 = ~14.28% */
+    padding-left: 9.52%;
+    padding-right: 14.28%;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 8rem; /* Descendu davantage sur l'axe Y */
+    margin-bottom: 2rem;
+}
+
+.parcours-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 160px 120px 120px 80px; /* Colonne PRIX élargie à 120px pour éviter le retour à la ligne du € */
+    justify-content: space-between; /* Distribue l'espace restant pour des gaps identiques */
+    align-items: center;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Retour à l'alignement sur l'axe X (gauche) */
+    gap: 0.2rem;
+}
+
+.stat-title {
+    font-family: 'Jost', sans-serif;
+    font-size: 2.6rem; /* Agrandissement du titre pour être plus grand que la donnée */
+    font-weight: 800;
+    color: var(--hero-bg); /* Corail */
+    letter-spacing: 2px;
+}
+
+.stat-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.4rem; /* Agrandissement des données */
+    font-weight: 800;
+    color: var(--text-color);
+}
+
+.details-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px; /* Élargi pour correspondre à la largeur du texte "1 - 2" en dessous */
+    cursor: pointer;
+    color: var(--hero-bg); /* Rouge Corail */
+    transition: transform 0.3s ease;
+}
+
+.details-toggle:hover {
+    transform: translateY(5px);
+}
+
+.details-toggle svg {
+    transition: transform 0.3s ease;
+    stroke-width: 4; /* Rendre la flèche plus grasse (bold) */
+}
+
+.details-toggle.open svg {
+    transform: rotate(180deg);
+}
+
+.parcours-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.4s ease, margin-top 0.4s ease;
+    opacity: 0;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 160px 120px 120px 80px; /* Même largeur exacte que parcours-stats */
+    justify-content: space-between;
+
+    color: var(--text-color);
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 400; /* Pas de bold */
+}
+
+.parcours-details.open {
+    max-height: 500px;
+    opacity: 1;
+    margin-top: 1.5rem;
+}
+
+.detail-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Aligné sur la gauche */
+    gap: 0.8rem;
+}
+
+.segments-col {
+    align-items: center; /* Centrer les nombres "1 - 2" exactement sous la flèche qui est centrée */
 }
 
 /* POKEDEX GALLERY */
@@ -945,7 +1052,45 @@ main,
         margin-left: 0; /* Annule le décalage bureau */
     }
 
+    /* STATS PARCOURS MOBILE */
+    .parcours-stats-wrapper {
+        width: 90vw;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 0;
+        padding-right: 0;
+        margin-top: -2rem; /* Rapprochement du schéma pour avoir la même distance qu'en haut */
+    }
+    
+    .parcours-stats {
+        display: flex; /* Force le passage en flexbox sur mobile au lieu de grid */
+        flex-direction: column;
+        gap: 4rem; /* Plus d'espace entre les données */
+        align-items: center; /* Centrage des blocs sur l'axe X */
+    }
 
+    .stat-item {
+        align-items: center; /* Entièrement centré comme demandé */
+    }
+    
+    .details-toggle {
+        display: none; /* Masqué sur mobile */
+    }
+
+    .parcours-details {
+        display: none; /* Masqué sur mobile (car la flèche est absente) */
+    }
+    
+    .stat-title {
+        font-size: 2.2rem;
+    }
+    .stat-value {
+        font-size: 1.8rem; /* Agrandissement aussi sur mobile */
+    }
+    
+    .section h2.date-title {
+        font-size: 15vw; /* Agrandissement conservé uniquement sur mobile */
+    }
 
     .footer-top {
         grid-template-columns: 1fr;
